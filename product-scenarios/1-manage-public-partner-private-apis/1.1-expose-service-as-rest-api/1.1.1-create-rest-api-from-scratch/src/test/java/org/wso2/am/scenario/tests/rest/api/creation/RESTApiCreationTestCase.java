@@ -24,6 +24,8 @@ import org.testng.annotations.DataProvider;
 import org.testng.annotations.Factory;
 import org.testng.annotations.Parameters;
 import org.testng.annotations.Test;
+import org.testng.ITest;
+import org.testng.annotations.BeforeMethod;
 import org.wso2.am.integration.test.utils.APIManagerIntegrationTestException;
 import org.wso2.am.scenario.test.common.APIPublisherRestClient;
 import org.wso2.am.scenario.test.common.APIRequest;
@@ -43,7 +45,9 @@ import org.wso2.carbon.utils.multitenancy.MultitenantUtils;
 import java.rmi.RemoteException;
 import java.util.Properties;
 
-public class RESTApiCreationTestCase extends ScenarioTestBase {
+import java.lang.reflect.Method;
+
+public class RESTApiCreationTestCase extends ScenarioTestBase implements ITest{
     private static final Log log = LogFactory.getLog(APIRequest.class);
 
     private APIPublisherRestClient apiPublisher;
@@ -81,6 +85,9 @@ public class RESTApiCreationTestCase extends ScenarioTestBase {
     private String adminPassword;
 
     private String backendEndPoint = "http://ws.cdyne.com/phoneverify/phoneverify.asmx";
+
+    String testInstanceName = "";
+
 
     // All tests in this class will run with a super tenant API creator and a tenant API creator.
     @Factory(dataProvider = "userModeDataProvider") public RESTApiCreationTestCase(String username, String password,
@@ -138,6 +145,15 @@ public class RESTApiCreationTestCase extends ScenarioTestBase {
         HttpResponse serviceResponse = apiPublisher.designAPI(apiRequest);
         verifyResponse(serviceResponse);
         verifyAPIName(apiName, username);
+    }
+
+    @BeforeMethod(alwaysRun = true)
+    public void changeTestCaseName(Method method) {
+        testInstanceName = method.getAnnotation(Test.class).description() + "_" + method.getName() +"_"+ adminUsername;
+    }
+
+    public String getTestName() {
+        return testInstanceName;
     }
 
     private void validateOptionalFiled(HttpResponse response) throws APIManagerIntegrationTestException {
